@@ -1,7 +1,8 @@
 #pragma once
+#include <stack>
 
-#include <opencv2/opencv.hpp>
 #include <picture.h>
+#include <opencv2/opencv.hpp>
 
 class SeamCarver {
 private:
@@ -16,4 +17,5 @@ private:
 public:
     SeamCarver(Picture&& pic);
     const cv::Mat& energy() const;
+    std::stack<int> findVerticalSeam() const;
 };

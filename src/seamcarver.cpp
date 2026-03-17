@@ -1,6 +1,8 @@
 #include <seamcarver.h>
+
 #include <cmath>
 #include <utility>
+#include <algorithm>
 
 // Add private helper functions here
 namespace {
@@ -46,4 +48,44 @@ float SeamCarver::calculateEnergy(int row, int col) {
 
 const cv::Mat& SeamCarver::energy() const {
     return energy_matrix;
+}
+
+std::stack<int> SeamCarver::findVerticalSeam() const {
+    cv::Mat energy_sum(picture.height(), picture.width(), CV_32FC1);
+    cv::Mat parent(picture.height(), picture.width(), CV_32SC1);
+    energy_sum.row(0).setTo(cv::Scalar(1000.0f));
+    parent.row(0).setTo(cv::Scalar(-1));
+
+    for (int row = 1; row < picture.height(); ++row) {
+        for (int col = 0; col < picture.width(); ++col) {
+            int parent_index = col;
+            float min_parent_sum = energy_sum.at<float>(row - 1, parent_index);
+            if (col != 0 && energy_sum.at<float>(row - 1, col - 1) < min_parent_sum) {
+                min_parent_sum = energy_sum.at<float>(row - 1, col - 1);
+                parent_index = col - 1;
+            }
+            if (col != picture.width() - 1 && energy_sum.at<float>(row - 1, col + 1) < min_parent_sum) {
+                min_parent_sum = energy_sum.at<float>(row - 1, col + 1);
+                parent_index = col + 1;
+            }
+
+            parent.at<int>(row, col) = parent_index;
+
+            energy_sum.at<float>(row, col) = energy_matrix.at<float>(row, col) + min_parent_sum;
+        }
+    }
+    
+    // Finding the location of the smallest energy sum
+    cv::Point minLoc;
+    cv::minMaxLoc(energy_sum.row(energy_sum.rows - 1), nullptr, nullptr, &minLoc, nullptr);
+    int min_sum_index = minLoc.x;
+
+    // Backtracking to find indices which make up seam. Top to bottom of Picture.
+    std::stack<int> seam;
+    for (int row = picture.height() - 1; row >= 0; --row) {
+        seam.push(min_sum_index);
+        min_sum_index = parent.at<int>(row, min_sum_index);
+    }
+
+    return seam;
 }

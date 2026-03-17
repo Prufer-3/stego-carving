@@ -1,4 +1,4 @@
-#include <vector>
+#include <stack>
 #include <utility>
 #include <stdexcept>
 #include <algorithm>
@@ -79,10 +79,11 @@ TEST_CASE("Single column vertical seam", "[seams]") {
     Picture pic("../images/1x8.png");
     SeamCarver sc(std::move(pic));
 
-    std::vector<float> seam = sc.findVerticalSeam();
+    std::stack<int> seam = sc.findVerticalSeam();
 
-    for (float energy : seam) {
-        REQUIRE_THAT(energy, WithinAbs(1000.0f, 0.1));
+    while (!seam.empty()) {
+        REQUIRE(seam.top() == 0);
+        seam.pop();
     }
 }
 
@@ -90,10 +91,17 @@ TEST_CASE("Finding the minimum vertical seam", "[seams]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(std::move(pic));
 
-    std::vector<float> seam = sc.findVerticalSeam();
-    std::vector<float> expected = {1000.0f, 107.89f, 133.07f, 174.01f, 1000.0f};
-
-    for (int i = 0; i < seam.size(); ++i) {
-        REQUIRE_THAT(seam[i], WithinAbs(expected[i], 0.1));
-    }
+    std::stack<int> seam = sc.findVerticalSeam();
+    
+    // A bit inelegant, but this is just a hard-coded seam path.
+    REQUIRE(seam.top() == 4);
+    seam.pop();
+    REQUIRE(seam.top() == 4);
+    seam.pop();
+    REQUIRE(seam.top() == 3);
+    seam.pop();
+    REQUIRE(seam.top() == 2);
+    seam.pop();
+    REQUIRE(seam.top() == 1);
+    seam.pop();
 }
