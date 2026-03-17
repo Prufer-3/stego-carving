@@ -1,9 +1,10 @@
-#include <picture.h>
 #include <vector>
+#include <stdexcept>
+
+#include <picture.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/opencv.hpp>
-#include <stdexcept>
-using namespace std;
 using namespace cv;
 
 TEST_CASE("Picture class returns correct RGB values", "[picture]") {

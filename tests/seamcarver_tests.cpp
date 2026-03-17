@@ -1,12 +1,15 @@
+#include <vector>
+#include <utility>
+#include <stdexcept>
+#include <algorithm>
+
 #include <picture.h>
 #include <seamcarver.h>
-#include <vector>
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <opencv2/opencv.hpp>
-#include <utility>
-#include <stdexcept>
-using namespace std;
+
 using namespace cv;
 using namespace Catch::Matchers;
 
@@ -69,5 +72,28 @@ TEST_CASE("Dual-gradient energy calculation is correct", "[energy]") {
             INFO("Mismatch at row: " << row << " col: "<< col << "\nExpected: " << expected_val << " Got: " << val);
             REQUIRE_THAT(val, WithinAbs(expected_val, 0.1));
         }
+    }
+}
+
+TEST_CASE("Single column vertical seam", "[seams]") {
+    Picture pic("../images/1x8.png");
+    SeamCarver sc(std::move(pic));
+
+    std::vector<float> seam = sc.findVerticalSeam();
+
+    for (float energy : seam) {
+        REQUIRE_THAT(energy, WithinAbs(1000.0f, 0.1));
+    }
+}
+
+TEST_CASE("Finding the minimum vertical seam", "[seams]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(std::move(pic));
+
+    std::vector<float> seam = sc.findVerticalSeam();
+    std::vector<float> expected = {1000.0f, 107.89f, 133.07f, 174.01f, 1000.0f};
+
+    for (int i = 0; i < seam.size(); ++i) {
+        REQUIRE_THAT(seam[i], WithinAbs(expected[i], 0.1));
     }
 }
