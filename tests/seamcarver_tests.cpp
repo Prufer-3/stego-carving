@@ -76,6 +76,47 @@ TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]"
     REQUIRE(cv::countNonZero(difference) == 0);
 }
 
+TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    Mat pre_energy = sc.energy();
+    // Calling findHorizontalSeam() will cause the underlying energy_matrix to be transposed.
+    // But result from sc.energy() should not reflect this.
+    sc.findHorizontalSeam();
+    Mat post_energy = sc.energy();
+
+    REQUIRE(pre_energy.rows == post_energy.rows);
+    REQUIRE(pre_energy.cols == post_energy.cols);
+    Mat difference;
+    cv::bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(cv::countNonZero(difference) == 0);
+}
+
+TEST_CASE("Transposing doesn't affect energy matrix calculation", "[energy]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    Mat expected = (Mat_<float>(5,6) << 
+        1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f,
+        1000.0f, 237.35f, 151.02f, 234.09f, 107.89f, 1000.0f,
+        1000.0f, 138.69f, 228.10f, 133.07f, 211.51f, 1000.0f,
+        1000.0f, 153.88f, 174.01f, 284.01f, 194.50f, 1000.0f,
+        1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f, 1000.0f
+    );
+    sc.findHorizontalSeam(); // Force a transposition
+    Mat energy_matrix = sc.energy();
+
+    for (int row = 0; row < energy_matrix.rows; ++row) {
+        for (int col = 0; col < energy_matrix.cols; ++col) {
+            float val = energy_matrix.at<float>(row, col);
+            float expected_val = expected.at<float>(row, col);
+            INFO("Mismatch at row: " << row << " col: "<< col << "\nExpected: " << expected_val << " Got: " << val);
+            REQUIRE_THAT(val, WithinAbs(expected_val, 0.1));
+        }
+    }
+}
+
 TEST_CASE("Single column vertical seam", "[seams]") {
     Picture pic("../images/1x8.png");
     SeamCarver sc(pic);
