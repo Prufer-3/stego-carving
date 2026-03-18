@@ -1,9 +1,10 @@
-#include <picture.h>
 #include <vector>
+#include <stdexcept>
+
+#include <picture.h>
+
 #include <catch2/catch_test_macros.hpp>
 #include <opencv2/opencv.hpp>
-#include <stdexcept>
-using namespace std;
 using namespace cv;
 
 TEST_CASE("Picture class returns correct RGB values", "[picture]") {
@@ -28,17 +29,17 @@ TEST_CASE("Setting individual pixels in Picture class", "[picture]") {
     
     REQUIRE(pic.getPixel(0, 0) == Vec3b(0, 0, 0));
 
-    Vec3b rgb(255, 215, 115);
-    pic.setPixel(0, 0, rgb);
+    Vec3b bgr(255, 215, 115);
+    pic.setPixel(0, 0, bgr);
 
-    REQUIRE(pic.getPixel(0, 0) == rgb);
+    REQUIRE(pic.getPixel(0, 0) == bgr);
 }
 
 TEST_CASE("Attempting to set an out of bounds pixel", "[picture]") {
     Mat image(2, 2, CV_8UC3, Scalar(0, 0, 0));
     Picture pic(image);
 
-    Vec3b rgb(0, 0, 255);
+    Vec3b bgr(0, 0, 255);
 
-    REQUIRE_THROWS_AS(pic.setPixel(10, 10, rgb), std::out_of_range);
+    REQUIRE_THROWS_AS(pic.setPixel(10, 10, bgr), std::out_of_range);
 }
