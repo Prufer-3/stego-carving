@@ -81,10 +81,21 @@ TEST_CASE("Single column vertical seam", "[seams]") {
 
     std::stack<int> seam = sc.findVerticalSeam();
 
+    REQUIRE(seam.size() == 8);
     while (!seam.empty()) {
         REQUIRE(seam.top() == 0);
         seam.pop();
     }
+}
+
+TEST_CASE("Single row vertical seam", "[seams]") {
+    Picture pic("../images/8x1.png");
+    SeamCarver sc(std::move(pic));
+
+    std::stack<int> seam = sc.findVerticalSeam();
+
+    REQUIRE(seam.size() == 1);
+    REQUIRE(seam.top() == 0);
 }
 
 TEST_CASE("Finding the minimum vertical seam", "[seams]") {
@@ -93,6 +104,7 @@ TEST_CASE("Finding the minimum vertical seam", "[seams]") {
 
     std::stack<int> seam = sc.findVerticalSeam();
     
+    REQUIRE(seam.size() == 5);
     // A bit inelegant, but this is just a hard-coded seam path.
     REQUIRE(seam.top() == 4);
     seam.pop();

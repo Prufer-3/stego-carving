@@ -56,6 +56,7 @@ std::stack<int> SeamCarver::findVerticalSeam() const {
     energy_sum.row(0).setTo(cv::Scalar(1000.0f));
     parent.row(0).setTo(cv::Scalar(-1));
 
+    // DP algorithm to calculate all possible seam energy values.
     for (int row = 1; row < picture.height(); ++row) {
         for (int col = 0; col < picture.width(); ++col) {
             int parent_index = col;
