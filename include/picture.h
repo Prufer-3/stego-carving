@@ -14,8 +14,8 @@ public:
     Picture(const Picture&) = delete;
     Picture& operator=(const Picture&) = delete;
 
-    Picture(Picture&&) noexcept = default;
-    Picture& operator=(Picture&&) noexcept = default;
+    Picture(Picture&&) noexcept = delete;
+    Picture& operator=(Picture&&) noexcept = delete;
 
     int width() const;
     int height() const;

@@ -6,17 +6,18 @@
 
 class SeamCarver {
 private:
-    Picture picture;
+    // Picture picture;
+    int width, height;
     cv::Mat energy_matrix;
-    // TODO: Consider transposition for horizontal seam finding
-    // bool transposed = false;
+    bool transposed = false;
 
-    float calculateEnergy(int row, int col);
-    void aggregateEnergy();
+    float calculateEnergy(const Picture& pic, int row, int col);
+    void aggregateEnergy(const Picture& pic);
+    std::stack<int> findSeam() const;
 
 public:
-    SeamCarver(Picture&& pic);
+    SeamCarver(const Picture& pic);
     const cv::Mat& energy() const;
-    std::stack<int> findVerticalSeam() const;
-    std::stack<int> findHorizontalSeam() const;
+    std::stack<int> findVerticalSeam();
+    std::stack<int> findHorizontalSeam();
 };

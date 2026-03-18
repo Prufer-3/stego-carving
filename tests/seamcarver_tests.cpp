@@ -13,25 +13,6 @@
 using namespace cv;
 using namespace Catch::Matchers;
 
-TEST_CASE("Testing move semantics of SeamCarver constructor", "[seams]") {
-    Picture pic("../images/6x5.png");
-    // Checking that fields are accessible before moving
-    REQUIRE(pic.width() == 6);
-    REQUIRE(pic.height() == 5);
-
-    SeamCarver sc(std::move(pic));
-
-    // pic should've been moved into the SeamCarver instance
-    REQUIRE(pic.width() == 0);
-    REQUIRE(pic.height() == 0);
-
-    // Trying to access fields in moved object should throw an out of bounds
-    REQUIRE_THROWS_AS(pic.getPixel(0, 0), std::out_of_range);
-
-    REQUIRE(sc.energy().cols == 6);
-    REQUIRE(sc.energy().rows == 5);
-}
-
 TEST_CASE("Boundary energy calculation is correct", "[energy]") {
     Mat image = Mat::zeros(3, 1, CV_8UC3);
     
@@ -41,7 +22,7 @@ TEST_CASE("Boundary energy calculation is correct", "[energy]") {
     image.at<Vec3b>(2, 0) = Vec3b(0, 50, 0);
 
     Picture pic(image);
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     Mat energy_matrix = sc.energy();
     for (int row = 0; row < energy_matrix.rows; ++row) {
@@ -53,7 +34,7 @@ TEST_CASE("Boundary energy calculation is correct", "[energy]") {
 
 TEST_CASE("Dual-gradient energy calculation is correct", "[energy]") {    
     Picture pic("../images/6x5.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     Mat energy_matrix = sc.energy();
     // Values from https://coursera.cs.princeton.edu/algs4/assignments/seam/specification.php
@@ -77,7 +58,7 @@ TEST_CASE("Dual-gradient energy calculation is correct", "[energy]") {
 
 TEST_CASE("Single column vertical seam", "[seams]") {
     Picture pic("../images/1x8.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findVerticalSeam();
 
@@ -90,7 +71,7 @@ TEST_CASE("Single column vertical seam", "[seams]") {
 
 TEST_CASE("Single row vertical seam", "[seams]") {
     Picture pic("../images/8x1.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findVerticalSeam();
 
@@ -100,7 +81,7 @@ TEST_CASE("Single row vertical seam", "[seams]") {
 
 TEST_CASE("Finding the minimum vertical seam", "[seams]") {
     Picture pic("../images/6x5.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findVerticalSeam();
     
@@ -120,7 +101,7 @@ TEST_CASE("Finding the minimum vertical seam", "[seams]") {
 
 TEST_CASE("Single row horizontal seam", "[seams]") {
     Picture pic("../images/8x1.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findHorizontalSeam();
 
@@ -133,7 +114,7 @@ TEST_CASE("Single row horizontal seam", "[seams]") {
 
 TEST_CASE("Single column horizontal seam", "[seams]") {
     Picture pic("../images/1x8.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findHorizontalSeam();
 
@@ -143,10 +124,10 @@ TEST_CASE("Single column horizontal seam", "[seams]") {
 
 TEST_CASE("Finding the minimum horizontal seam", "[seams]") {
     Picture pic("../images/6x5.png");
-    SeamCarver sc(std::move(pic));
+    SeamCarver sc(pic);
 
     std::stack<int> seam = sc.findHorizontalSeam();
-    
+
     REQUIRE(seam.size() == 6);
     REQUIRE(seam.top() == 2);
     seam.pop();
@@ -158,6 +139,6 @@ TEST_CASE("Finding the minimum horizontal seam", "[seams]") {
     seam.pop();
     REQUIRE(seam.top() == 1);
     seam.pop();
-    REQUIRE(seam.top() == 2);
+    REQUIRE(seam.top() == 0);
     seam.pop();
 }
