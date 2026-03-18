@@ -4,7 +4,6 @@
 #include <utility>
 #include <algorithm>
 
-// Add private helper functions here
 namespace {
     // BGR values in Vec3b for pixels
     int gradientSquared(cv::Vec3b px1, cv::Vec3b px2) {
@@ -48,7 +47,16 @@ float SeamCarver::calculateEnergy(const Picture& pic, int row, int col) {
     return std::sqrt(static_cast<float> (xGradSquared + yGradSquared));
 }
 
-const cv::Mat& SeamCarver::energy() const {
+void SeamCarver::transpose() {
+    energy_matrix = energy_matrix.t();
+    transposed = !transposed;
+    std::swap(width, height);
+}
+
+const cv::Mat SeamCarver::energy() {
+    if (transposed) {
+        return energy_matrix.t();
+    }
     return energy_matrix;
 }
 
@@ -94,19 +102,11 @@ std::stack<int> SeamCarver::findSeam() const {
 }
 
 std::stack<int> SeamCarver::findVerticalSeam() {
-    if (transposed) {
-        energy_matrix = energy_matrix.t();
-        transposed = !transposed;
-        std::swap(height, width);
-    }
+    if (transposed) transpose();
     return findSeam();
 }
 
 std::stack<int> SeamCarver::findHorizontalSeam() {
-    if (!transposed) {
-        energy_matrix = energy_matrix.t();
-        transposed = !transposed;
-        std::swap(height, width);
-    }
+    if (!transposed) transpose();
     return findSeam();
 }
