@@ -56,6 +56,26 @@ TEST_CASE("Dual-gradient energy calculation is correct", "[energy]") {
     }
 }
 
+TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]") {    
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    Mat pre_energy = sc.energy();
+
+    // Overwriting all pixels in original pic
+    for (int row = 0; row < pic.height(); ++row) {
+        for (int col = 0; col < pic.width(); ++col) {
+            pic.setPixel(row, col, Vec3b(0, 255, 0));
+        }
+    }
+
+    Mat post_energy = sc.energy();
+
+    Mat difference;
+    cv::bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(cv::countNonZero(difference) == 0);
+}
+
 TEST_CASE("Single column vertical seam", "[seams]") {
     Picture pic("../images/1x8.png");
     SeamCarver sc(pic);
