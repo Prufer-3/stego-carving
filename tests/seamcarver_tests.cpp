@@ -117,3 +117,47 @@ TEST_CASE("Finding the minimum vertical seam", "[seams]") {
     REQUIRE(seam.top() == 1);
     seam.pop();
 }
+
+TEST_CASE("Single row horizontal seam", "[seams]") {
+    Picture pic("../images/8x1.png");
+    SeamCarver sc(std::move(pic));
+
+    std::stack<int> seam = sc.findHorizontalSeam();
+
+    REQUIRE(seam.size() == 8);
+    while (!seam.empty()) {
+        REQUIRE(seam.top() == 0);
+        seam.pop();
+    }
+}
+
+TEST_CASE("Single column horizontal seam", "[seams]") {
+    Picture pic("../images/1x8.png");
+    SeamCarver sc(std::move(pic));
+
+    std::stack<int> seam = sc.findHorizontalSeam();
+
+    REQUIRE(seam.size() == 1);
+    REQUIRE(seam.top() == 0);
+}
+
+TEST_CASE("Finding the minimum horizontal seam", "[seams]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(std::move(pic));
+
+    std::stack<int> seam = sc.findHorizontalSeam();
+    
+    REQUIRE(seam.size() == 6);
+    REQUIRE(seam.top() == 2);
+    seam.pop();
+    REQUIRE(seam.top() == 2);
+    seam.pop();
+    REQUIRE(seam.top() == 1);
+    seam.pop();
+    REQUIRE(seam.top() == 2);
+    seam.pop();
+    REQUIRE(seam.top() == 1);
+    seam.pop();
+    REQUIRE(seam.top() == 2);
+    seam.pop();
+}
