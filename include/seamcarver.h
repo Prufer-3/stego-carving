@@ -18,7 +18,7 @@ private:
 
 public:
     SeamCarver(const Picture& pic);
-    const cv::Mat energy();
+    const cv::Mat energy() const;
     std::stack<int> findVerticalSeam();
     std::stack<int> findHorizontalSeam();
 };

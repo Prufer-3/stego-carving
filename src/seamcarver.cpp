@@ -53,7 +53,7 @@ void SeamCarver::transpose() {
     std::swap(width, height);
 }
 
-const cv::Mat SeamCarver::energy() {
+const cv::Mat SeamCarver::energy() const {
     if (transposed) {
         return energy_matrix.t();
     }
