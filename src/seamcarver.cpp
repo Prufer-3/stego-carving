@@ -17,23 +17,23 @@ namespace {
     }
 }
 
-SeamCarver::SeamCarver(const Picture& pic) {
+SeamCarver::SeamCarver(const Picture pic) : pic(pic) {
     width = pic.width();
     height = pic.height();
-    aggregateEnergy(pic);
+    aggregateEnergy();
 }
 
-void SeamCarver::aggregateEnergy(const Picture& pic) {
+void SeamCarver::aggregateEnergy() {
     energy_matrix = cv::Mat(height, width, CV_32FC1);
     for (int row = 0; row < height; ++row) {
         for (int col = 0; col < width; ++col) {
-            energy_matrix.at<float>(row, col) = calculateEnergy(pic, row, col);
+            energy_matrix.at<float>(row, col) = calculateEnergy(row, col);
         }
     }
 }
 
 // Calculate dual-gradient energy for a specific pixel
-float SeamCarver::calculateEnergy(const Picture& pic, int row, int col) {
+float SeamCarver::calculateEnergy(int row, int col) {
     if (col == 0 || row == 0) return 1000.0f;
     if (col == width - 1 || row == height - 1) return 1000.0f;
 
@@ -109,4 +109,8 @@ std::stack<int> SeamCarver::findVerticalSeam() {
 std::stack<int> SeamCarver::findHorizontalSeam() {
     if (!transposed) transpose();
     return findSeam();
+}
+
+const Picture SeamCarver::picture() const {
+    return pic;
 }

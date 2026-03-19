@@ -277,3 +277,15 @@ TEST_CASE("Trying to delete a vertical seam with in non-consecutive seams", "[se
 
     REQUIRE_THROWS_AS(sc.removeVerticalSeam(invalid_seam), std::invalid_argument);
 }
+
+TEST_CASE("Delete single vertical seam from 6x5.png", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    sc.removeVerticalSeam(sc.findVerticalSeam());
+    Picture result = sc.picture();
+    REQUIRE(result.height() == 5);
+    REQUIRE(result.width() == 5); 
+
+    // TODO: Could test pixel-by-pixel or for updated energy matrix
+}

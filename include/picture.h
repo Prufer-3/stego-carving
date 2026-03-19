@@ -11,12 +11,6 @@ public:
     Picture(const std::string& filename);
     Picture(const cv::Mat& mat);
 
-    Picture(const Picture&) = delete;
-    Picture& operator=(const Picture&) = delete;
-
-    Picture(Picture&&) noexcept = delete;
-    Picture& operator=(Picture&&) noexcept = delete;
-
     int width() const;
     int height() const;
 
