@@ -166,6 +166,10 @@ void SeamCarver::removeSeam(std::stack<int> seam) {
     aggregateEnergy();
 }
 
-const Picture SeamCarver::picture() const {
+const Picture SeamCarver::picture() {
+    if (transposed) {
+        Picture out(pic.toMat().t());
+        return out;
+    }
     return pic;
 }

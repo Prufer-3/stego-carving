@@ -315,7 +315,7 @@ TEST_CASE("Deleting a horizontal seam from a single column image", "[seam remova
     REQUIRE(sc.picture().width() == 1);
 
     REQUIRE_NOTHROW(sc.removeHorizontalSeam(sc.findHorizontalSeam()));
-    REQUIRE(sc.picture().width() == 6);
+    REQUIRE(sc.picture().height() == 6);
 }
 
 TEST_CASE("Trying to delete an incorrectly sized horizontal seam", "[seam removal]") {
@@ -373,23 +373,36 @@ TEST_CASE("Delete single horizontal seam from 6x5.png", "[seam removal]") {
     Picture pic(image);
     SeamCarver sc(pic);
 
+    std::cout << "Image: " << image << std::endl;
     std::vector<int> seam = {2, 2, 1, 2, 1, 0};
-    Mat expected(image.rows - 1, image.cols, CV_8UC3);
+    std::stack<int> found_seam = sc.findHorizontalSeam();
+    while (!found_seam.empty()) {
+        std::cout << found_seam.top() << ' ';
+        found_seam.pop();
+    }
+    std::cout << std::endl;
+
+    // Constructing as a transposed matrix
     image = image.t();
-    for (int col = 0; col < image.rows; ++col) {
-        int i = seam[col];
-        const Vec3b* src = image.ptr<Vec3b>(col);
-        Vec3b* dst = expected.ptr<Vec3b>(col);
+    Mat expected(image.rows, image.cols - 1, CV_8UC3);
+    for (int row = 0; row < image.rows; ++row) {
+        int i = seam[row];
+        const Vec3b* src = image.ptr<Vec3b>(row);
+        Vec3b* dst = expected.ptr<Vec3b>(row);
 
         std::copy(src, src + i, dst);
         std::copy(src + i + 1, src + image.cols, dst + i);
     }
     image = image.t();
+    expected = expected.t();
+    std::cout << "Expected: " << expected << std::endl;
 
     sc.removeHorizontalSeam(sc.findHorizontalSeam());
     Mat result = sc.picture().toMat();
+    std::cout << "Result: " << result << std::endl;
 
     Mat difference;
     bitwise_xor(result, expected, difference);
+    std::cout << difference << std::endl;
     REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }

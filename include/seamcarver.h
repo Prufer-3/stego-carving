@@ -25,5 +25,5 @@ public:
     void removeVerticalSeam(std::stack<int> seam);
     std::stack<int> findHorizontalSeam();
     void removeHorizontalSeam(std::stack<int> seam);
-    const Picture picture() const;
+    const Picture picture();
 };
