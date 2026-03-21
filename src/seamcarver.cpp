@@ -48,6 +48,8 @@ float SeamCarver::calculateEnergy(int row, int col) {
 }
 
 void SeamCarver::transpose() {
+    Picture new_pic(pic.toMat().t());
+    pic = new_pic;
     energy_matrix = energy_matrix.t();
     transposed = !transposed;
     std::swap(width, height);
@@ -166,7 +168,8 @@ void SeamCarver::removeSeam(std::stack<int> seam) {
     aggregateEnergy();
 }
 
-const Picture SeamCarver::picture() {
+// Always output the correctly oriented picture.
+const Picture SeamCarver::picture() const {
     if (transposed) {
         Picture out(pic.toMat().t());
         return out;

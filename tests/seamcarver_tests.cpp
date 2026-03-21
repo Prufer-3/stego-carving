@@ -373,17 +373,9 @@ TEST_CASE("Delete single horizontal seam from 6x5.png", "[seam removal]") {
     Picture pic(image);
     SeamCarver sc(pic);
 
-    std::cout << "Image: " << image << std::endl;
-    std::vector<int> seam = {2, 2, 1, 2, 1, 0};
-    std::stack<int> found_seam = sc.findHorizontalSeam();
-    while (!found_seam.empty()) {
-        std::cout << found_seam.top() << ' ';
-        found_seam.pop();
-    }
-    std::cout << std::endl;
-
     // Constructing as a transposed matrix
     image = image.t();
+    std::vector<int> seam = {2, 2, 1, 2, 1, 0};
     Mat expected(image.rows, image.cols - 1, CV_8UC3);
     for (int row = 0; row < image.rows; ++row) {
         int i = seam[row];
@@ -395,14 +387,11 @@ TEST_CASE("Delete single horizontal seam from 6x5.png", "[seam removal]") {
     }
     image = image.t();
     expected = expected.t();
-    std::cout << "Expected: " << expected << std::endl;
 
     sc.removeHorizontalSeam(sc.findHorizontalSeam());
     Mat result = sc.picture().toMat();
-    std::cout << "Result: " << result << std::endl;
 
     Mat difference;
     bitwise_xor(result, expected, difference);
-    std::cout << difference << std::endl;
     REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
