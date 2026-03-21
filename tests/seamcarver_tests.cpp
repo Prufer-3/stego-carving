@@ -216,7 +216,7 @@ TEST_CASE("Trying to delete a vertical seam from a single column image", "[seam 
     REQUIRE(result.width() == 0);
 
     // But should fail here.
-    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::out_of_range);
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::length_error);
 }
 
 TEST_CASE("Deleting a vertical seam from a single row image", "[seam removal]") {
@@ -262,7 +262,7 @@ TEST_CASE("Trying to delete a vertical seam with invalid indices", "[seam remova
 
     // Seam contains negative indices
     std::stack<int> negative_seam;
-    for (int i : {0, -1, 0, 1, 2})
+    for (int i : {0, -1, 0, 1, 2}) negative_seam.push(i);
     
     REQUIRE_THROWS_AS(sc.removeVerticalSeam(invalid_seam), std::invalid_argument);
 }

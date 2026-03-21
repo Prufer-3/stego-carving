@@ -106,9 +106,42 @@ std::stack<int> SeamCarver::findVerticalSeam() {
     return findSeam();
 }
 
+void SeamCarver::removeVerticalSeam(std::stack<int> seam) {
+    if (transposed) transpose();
+    checkSeam(seam);
+    removeSeam(seam);
+}
+
 std::stack<int> SeamCarver::findHorizontalSeam() {
     if (!transposed) transpose();
     return findSeam();
+}
+
+void SeamCarver::removeHorizontalSeam(std::stack<int> seam) {
+    if (!transposed) transpose();
+    checkSeam(seam);
+    removeSeam(seam);
+}
+
+void SeamCarver::checkSeam(std::stack<int> seam) const {
+    // Width and height are a bit of a misnomer here
+    // But they are coupled with the current orientation of the Picture
+    if (static_cast<int>(seam.size()) != height) {
+        throw std::invalid_argument("Mismatched seam length");
+    }
+
+    std::stack<int> seam_copy = seam;
+
+    while (!seam_copy.empty()) {
+        if (seam_copy.top() < 0 || seam_copy.top() > width - 1) {
+            throw std::invalid_argument("Seam index out of bounds");
+        }
+        seam_copy.pop();
+    }
+}
+
+void SeamCarver::removeSeam(std::stack<int> seam) {
+    // TODO: Removal code goes here
 }
 
 const Picture SeamCarver::picture() const {
