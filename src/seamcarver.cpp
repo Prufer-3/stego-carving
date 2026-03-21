@@ -124,11 +124,11 @@ void SeamCarver::removeHorizontalSeam(std::stack<int> seam) {
 }
 
 void SeamCarver::checkSeam(const std::stack<int>& seam) const {
+    // Width and height are a bit of a misnomer here
+    // But they are coupled with the current orientation of the Picture
     if (width == 1) {
         throw std::domain_error("Deletion of the last seam in image is not allowed");
     }
-    // Width and height are a bit of a misnomer here
-    // But they are coupled with the current orientation of the Picture
     if (static_cast<int>(seam.size()) != height) {
         throw std::invalid_argument("Mismatched seam length");
     }
