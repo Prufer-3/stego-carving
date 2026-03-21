@@ -217,15 +217,13 @@ TEST_CASE("Deleting a vertical seam from a single row image", "[seam removal]") 
     SeamCarver sc(pic);
 
     REQUIRE(sc.picture().width() == 8);
-    sc.picture().display();
     REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
-    sc.picture().display();
+
     Picture result = sc.picture();
     REQUIRE(result.height() == 1);
     REQUIRE(result.width() == 7);
 
     REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
-    sc.picture().display();
     REQUIRE(sc.picture().width() == 6);
 }
 

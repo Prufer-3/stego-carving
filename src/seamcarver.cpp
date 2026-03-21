@@ -135,11 +135,16 @@ void SeamCarver::checkSeam(const std::stack<int>& seam) const {
 
     std::stack<int> seam_copy = seam;
 
+    int prev = seam_copy.top();
     while (!seam_copy.empty()) {
-        if (seam_copy.top() < 0 || seam_copy.top() > width - 1) {
+        int curr = seam_copy.top();
+        if (prev < 0 || prev > width - 1) {
             throw std::invalid_argument("Seam index out of bounds");
         }
-        // TODO: Check if connected
+        if (std::abs(curr - prev) > 1) {
+            throw std::invalid_argument("Seam must be continuous");
+        }
+        prev = curr;
         seam_copy.pop();
     }
 }
@@ -157,7 +162,6 @@ void SeamCarver::removeSeam(std::stack<int> seam) {
     }
 
     --width;
-    std::cout << new_image << std::endl;
     pic = Picture(new_image);
     aggregateEnergy();
 }
