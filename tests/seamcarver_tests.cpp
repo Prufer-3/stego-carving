@@ -72,8 +72,8 @@ TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]"
     Mat post_energy = sc.energy();
 
     Mat difference;
-    cv::bitwise_xor(pre_energy, post_energy, difference);
-    REQUIRE(cv::countNonZero(difference) == 0);
+    bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
 
 TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
@@ -89,8 +89,8 @@ TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
     REQUIRE(pre_energy.rows == post_energy.rows);
     REQUIRE(pre_energy.cols == post_energy.cols);
     Mat difference;
-    cv::bitwise_xor(pre_energy, post_energy, difference);
-    REQUIRE(cv::countNonZero(difference) == 0);
+    bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
 
 TEST_CASE("Transposing doesn't affect energy matrix calculation", "[energy]") {
@@ -272,13 +272,26 @@ TEST_CASE("Trying to delete a vertical seam with in non-consecutive seams", "[se
 }
 
 TEST_CASE("Delete single vertical seam from 6x5.png", "[seam removal]") {
-    Picture pic("../images/6x5.png");
+    Mat image = imread("../images/6x5.png", IMREAD_COLOR);
+    Picture pic(image);
     SeamCarver sc(pic);
 
-    sc.removeVerticalSeam(sc.findVerticalSeam());
-    Picture result = sc.picture();
-    REQUIRE(result.height() == 5);
-    REQUIRE(result.width() == 5); 
+    std::vector<int> seam = {4, 4, 3, 2, 1};
+    Mat expected(image.rows, image.cols - 1, CV_8UC3);
+    for (int row = 0; row < image.rows; ++row) {
+        int i = seam[row];
+        const Vec3b* src = pic.toMat().ptr<Vec3b>(row);
+        Vec3b* dst = expected.ptr<Vec3b>(row);
 
-    // TODO: Could test pixel-by-pixel or for updated energy matrix
+        std::copy(src, src + i, dst);
+        std::copy(src + i + 1, src + image.cols, dst + i);
+    }
+    std::cout << expected << std::endl;
+
+    sc.removeVerticalSeam(sc.findVerticalSeam());
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }

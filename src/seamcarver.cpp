@@ -138,7 +138,7 @@ void SeamCarver::checkSeam(const std::stack<int>& seam) const {
     int prev = seam_copy.top();
     while (!seam_copy.empty()) {
         int curr = seam_copy.top();
-        if (prev < 0 || prev > width - 1) {
+        if (curr < 0 || curr > width - 1) {
             throw std::invalid_argument("Seam index out of bounds");
         }
         if (std::abs(curr - prev) > 1) {
