@@ -17,5 +17,6 @@ public:
     cv::Vec3b getPixel(int row, int col) const;
     void setPixel(int row, int col, const cv::Vec3b& color);
 
-    void display();
+    void display() const;
+    const cv::Mat& toMat() const;
 };

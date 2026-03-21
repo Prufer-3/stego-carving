@@ -41,8 +41,12 @@ void Picture::setPixel(int row, int col, const cv::Vec3b& color) {
     image.at<cv::Vec3b>(row, col) = color;
 }
 
-void Picture::display() {
+void Picture::display() const {
     cv::imshow("", image);
     cv::waitKey(0);
     cv::destroyAllWindows();
+}
+
+const cv::Mat& Picture::toMat() const {
+    return image;
 }

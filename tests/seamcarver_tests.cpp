@@ -208,15 +208,8 @@ TEST_CASE("Trying to delete a vertical seam from a single column image", "[seam 
     Picture pic("../images/1x8.png");
     SeamCarver sc(pic);
 
-    // Going to allow deletion of the last seam.
-    REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
-
-    Picture result = sc.picture();
-    REQUIRE(result.height() == 0);
-    REQUIRE(result.width() == 0);
-
-    // But should fail here.
-    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::length_error);
+    // Going to disallow deletion of the last seam
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::domain_error);
 }
 
 TEST_CASE("Deleting a vertical seam from a single row image", "[seam removal]") {
@@ -224,13 +217,15 @@ TEST_CASE("Deleting a vertical seam from a single row image", "[seam removal]") 
     SeamCarver sc(pic);
 
     REQUIRE(sc.picture().width() == 8);
+    sc.picture().display();
     REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
-
+    sc.picture().display();
     Picture result = sc.picture();
     REQUIRE(result.height() == 1);
     REQUIRE(result.width() == 7);
 
     REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
+    sc.picture().display();
     REQUIRE(sc.picture().width() == 6);
 }
 

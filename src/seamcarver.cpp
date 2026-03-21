@@ -123,7 +123,10 @@ void SeamCarver::removeHorizontalSeam(std::stack<int> seam) {
     removeSeam(seam);
 }
 
-void SeamCarver::checkSeam(std::stack<int> seam) const {
+void SeamCarver::checkSeam(const std::stack<int>& seam) const {
+    if (width == 1) {
+        throw std::domain_error("Deletion of the last seam in image is not allowed");
+    }
     // Width and height are a bit of a misnomer here
     // But they are coupled with the current orientation of the Picture
     if (static_cast<int>(seam.size()) != height) {
@@ -136,12 +139,27 @@ void SeamCarver::checkSeam(std::stack<int> seam) const {
         if (seam_copy.top() < 0 || seam_copy.top() > width - 1) {
             throw std::invalid_argument("Seam index out of bounds");
         }
+        // TODO: Check if connected
         seam_copy.pop();
     }
 }
 
 void SeamCarver::removeSeam(std::stack<int> seam) {
-    // TODO: Removal code goes here
+    cv::Mat new_image(height, width - 1, CV_8UC3);
+
+    for (int row = 0; row < height; ++row) {
+        int i = seam.top(); seam.pop();
+        const cv::Vec3b* src = pic.toMat().ptr<cv::Vec3b>(row);
+        cv::Vec3b* dst = new_image.ptr<cv::Vec3b>(row);
+
+        std::copy(src, src + i, dst);
+        std::copy(src + i + 1, src + width, dst + i);
+    }
+
+    --width;
+    std::cout << new_image << std::endl;
+    pic = Picture(new_image);
+    aggregateEnergy();
 }
 
 const Picture SeamCarver::picture() const {

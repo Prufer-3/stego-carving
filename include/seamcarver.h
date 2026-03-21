@@ -16,7 +16,7 @@ private:
     std::stack<int> findSeam() const;
     void transpose();
     void removeSeam(std::stack<int> seam);
-    void checkSeam(std::stack<int> seam) const;
+    void checkSeam(const std::stack<int>& seam) const;
 
 public:
     SeamCarver(const Picture pic);
