@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <utility>
+#include <stdexcept>
 #include <algorithm>
 
 namespace {
@@ -17,23 +18,23 @@ namespace {
     }
 }
 
-SeamCarver::SeamCarver(const Picture& pic) {
+SeamCarver::SeamCarver(Picture pic) : pic(pic) {
     width = pic.width();
     height = pic.height();
-    aggregateEnergy(pic);
+    aggregateEnergy();
 }
 
-void SeamCarver::aggregateEnergy(const Picture& pic) {
+void SeamCarver::aggregateEnergy() {
     energy_matrix = cv::Mat(height, width, CV_32FC1);
     for (int row = 0; row < height; ++row) {
         for (int col = 0; col < width; ++col) {
-            energy_matrix.at<float>(row, col) = calculateEnergy(pic, row, col);
+            energy_matrix.at<float>(row, col) = calculateEnergy(row, col);
         }
     }
 }
 
 // Calculate dual-gradient energy for a specific pixel
-float SeamCarver::calculateEnergy(const Picture& pic, int row, int col) {
+float SeamCarver::calculateEnergy(int row, int col) {
     if (col == 0 || row == 0) return 1000.0f;
     if (col == width - 1 || row == height - 1) return 1000.0f;
 
@@ -48,12 +49,13 @@ float SeamCarver::calculateEnergy(const Picture& pic, int row, int col) {
 }
 
 void SeamCarver::transpose() {
+    pic = Picture(pic.toMat().t());
     energy_matrix = energy_matrix.t();
     transposed = !transposed;
     std::swap(width, height);
 }
 
-const cv::Mat SeamCarver::energy() {
+cv::Mat SeamCarver::energy() const {
     if (transposed) {
         return energy_matrix.t();
     }
@@ -106,7 +108,71 @@ std::stack<int> SeamCarver::findVerticalSeam() {
     return findSeam();
 }
 
+void SeamCarver::removeVerticalSeam(std::stack<int> seam) {
+    if (transposed) transpose();
+    checkSeam(seam);
+    removeSeam(seam);
+}
+
 std::stack<int> SeamCarver::findHorizontalSeam() {
     if (!transposed) transpose();
     return findSeam();
+}
+
+void SeamCarver::removeHorizontalSeam(std::stack<int> seam) {
+    if (!transposed) transpose();
+    checkSeam(seam);
+    removeSeam(seam);
+}
+
+void SeamCarver::checkSeam(const std::stack<int>& seam) const {
+    // Width and height are a bit of a misnomer here
+    // But they are coupled with the current orientation of the Picture
+    if (width == 1) {
+        throw std::domain_error("Deletion of the last seam in image is not allowed");
+    }
+    if (static_cast<int>(seam.size()) != height) {
+        throw std::invalid_argument("Mismatched seam length");
+    }
+
+    std::stack<int> seam_copy = seam;
+
+    int prev = seam_copy.top();
+    while (!seam_copy.empty()) {
+        int curr = seam_copy.top();
+        if (curr < 0 || curr > width - 1) {
+            throw std::invalid_argument("Seam index out of bounds");
+        }
+        if (std::abs(curr - prev) > 1) {
+            throw std::invalid_argument("Seam must be continuous");
+        }
+        prev = curr;
+        seam_copy.pop();
+    }
+}
+
+void SeamCarver::removeSeam(std::stack<int>& seam) {
+    cv::Mat new_image(height, width - 1, CV_8UC3);
+
+    for (int row = 0; row < height; ++row) {
+        int i = seam.top(); seam.pop();
+        const cv::Vec3b* src = pic.toMat().ptr<cv::Vec3b>(row);
+        cv::Vec3b* dst = new_image.ptr<cv::Vec3b>(row);
+
+        std::copy(src, src + i, dst);
+        std::copy(src + i + 1, src + width, dst + i);
+    }
+
+    --width;
+    pic = Picture(new_image);
+    aggregateEnergy();
+}
+
+// Always output the correctly oriented picture.
+Picture SeamCarver::picture() const {
+    if (transposed) {
+        Picture out(pic.toMat().t());
+        return out;
+    }
+    return pic;
 }

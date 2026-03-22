@@ -1,6 +1,29 @@
 #include "picture.h"
+
+#include <utility>
 #include <stdexcept>
+
 #include <opencv2/core.hpp>
+
+Picture::Picture(const Picture& other) 
+    : image(other.image.clone()) {}
+
+Picture::Picture(Picture&& other) noexcept 
+    : image(std::move(other.image)) {}
+
+Picture& Picture::operator=(const Picture& other) {
+    if (this != &other) {
+        image = other.image.clone();
+    }
+    return *this;
+}
+
+Picture& Picture::operator=(Picture&& other) noexcept {
+    if (this != &other) {
+        image = std::move(other.image);
+    }
+    return *this;
+}
 
 Picture::Picture(const std::string& filename) {
     image = cv::imread(filename, cv::IMREAD_COLOR);
@@ -41,8 +64,12 @@ void Picture::setPixel(int row, int col, const cv::Vec3b& color) {
     image.at<cv::Vec3b>(row, col) = color;
 }
 
-void Picture::display() {
+void Picture::display() const {
     cv::imshow("", image);
     cv::waitKey(0);
     cv::destroyAllWindows();
+}
+
+const cv::Mat& Picture::toMat() const {
+    return image;
 }

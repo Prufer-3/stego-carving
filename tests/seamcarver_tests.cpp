@@ -72,8 +72,30 @@ TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]"
     Mat post_energy = sc.energy();
 
     Mat difference;
-    cv::bitwise_xor(pre_energy, post_energy, difference);
-    REQUIRE(cv::countNonZero(difference) == 0);
+    bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Mutating returned Picture doesn't affect SeamCarver internal state", "[picture]") {
+    Picture original("../images/6x5.png");
+    SeamCarver sc(original);
+
+    Picture returned = sc.picture();
+
+    // Overwrite every pixel in the returned picture
+    for (int row = 0; row < returned.height(); ++row) {
+        for (int col = 0; col < returned.width(); ++col) {
+            returned.setPixel(row, col, Vec3b(0, 255, 0));
+        }
+    }
+
+    // Internal picture should be unaffected
+    Picture internal = sc.picture();
+    for (int row = 0; row < internal.height(); ++row) {
+        for (int col = 0; col < internal.width(); ++col) {
+            REQUIRE(internal.getPixel(row, col) == original.getPixel(row, col));
+        }
+    }
 }
 
 TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
@@ -89,8 +111,8 @@ TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
     REQUIRE(pre_energy.rows == post_energy.rows);
     REQUIRE(pre_energy.cols == post_energy.cols);
     Mat difference;
-    cv::bitwise_xor(pre_energy, post_energy, difference);
-    REQUIRE(cv::countNonZero(difference) == 0);
+    bitwise_xor(pre_energy, post_energy, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
 
 TEST_CASE("Transposing doesn't affect energy matrix calculation", "[energy]") {
@@ -117,7 +139,7 @@ TEST_CASE("Transposing doesn't affect energy matrix calculation", "[energy]") {
     }
 }
 
-TEST_CASE("Single column vertical seam", "[seams]") {
+TEST_CASE("Single column vertical seam", "[seam finding]") {
     Picture pic("../images/1x8.png");
     SeamCarver sc(pic);
 
@@ -130,7 +152,7 @@ TEST_CASE("Single column vertical seam", "[seams]") {
     }
 }
 
-TEST_CASE("Single row vertical seam", "[seams]") {
+TEST_CASE("Single row vertical seam", "[seam finding]") {
     Picture pic("../images/8x1.png");
     SeamCarver sc(pic);
 
@@ -140,7 +162,7 @@ TEST_CASE("Single row vertical seam", "[seams]") {
     REQUIRE(seam.top() == 0);
 }
 
-TEST_CASE("Finding the minimum vertical seam", "[seams]") {
+TEST_CASE("Finding the minimum vertical seam", "[seam finding]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(pic);
 
@@ -160,7 +182,7 @@ TEST_CASE("Finding the minimum vertical seam", "[seams]") {
     seam.pop();
 }
 
-TEST_CASE("Single row horizontal seam", "[seams]") {
+TEST_CASE("Single row horizontal seam", "[seam finding]") {
     Picture pic("../images/8x1.png");
     SeamCarver sc(pic);
 
@@ -173,7 +195,7 @@ TEST_CASE("Single row horizontal seam", "[seams]") {
     }
 }
 
-TEST_CASE("Single column horizontal seam", "[seams]") {
+TEST_CASE("Single column horizontal seam", "[seam finding]") {
     Picture pic("../images/1x8.png");
     SeamCarver sc(pic);
 
@@ -183,7 +205,7 @@ TEST_CASE("Single column horizontal seam", "[seams]") {
     REQUIRE(seam.top() == 0);
 }
 
-TEST_CASE("Finding the minimum horizontal seam", "[seams]") {
+TEST_CASE("Finding the minimum horizontal seam", "[seam finding]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(pic);
 
@@ -202,4 +224,196 @@ TEST_CASE("Finding the minimum horizontal seam", "[seams]") {
     seam.pop();
     REQUIRE(seam.top() == 0);
     seam.pop();
+}
+
+TEST_CASE("Trying to delete a vertical seam from a single column image", "[seam removal]") {
+    Picture pic("../images/1x8.png");
+    SeamCarver sc(pic);
+
+    // Disallow deletion of the last seam
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::domain_error);
+}
+
+TEST_CASE("Deleting a vertical seam from a single row image", "[seam removal]") {
+    Picture pic("../images/8x1.png");
+    SeamCarver sc(pic);
+
+    REQUIRE(sc.picture().width() == 8);
+    REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
+
+    REQUIRE(sc.picture().height() == 1);
+    REQUIRE(sc.picture().width() == 7);
+
+    REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
+    REQUIRE(sc.picture().width() == 6);
+}
+
+TEST_CASE("Trying to delete an incorrectly sized vertical seam", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    // All are within bounds, but seam needs to be 5 indices exactly.
+    std::stack<int> invalid_seam;
+    for (int i : {1, 2, 3}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(invalid_seam), std::invalid_argument);
+
+    // Making seam.size() > height
+    for (int i : {3, 2, 1}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(invalid_seam), std::invalid_argument);
+}
+
+TEST_CASE("Trying to delete a vertical seam with invalid indices", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    // Seam contains an index > pic.width()
+    std::stack<int> out_of_bounds_seam;
+    for (int i : {3, 4, 5, 6, 7}) out_of_bounds_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(out_of_bounds_seam), std::invalid_argument);
+
+    // Seam contains negative indices
+    std::stack<int> negative_seam;
+    for (int i : {0, -1, 0, 1, 2}) negative_seam.push(i);
+    
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(negative_seam), std::invalid_argument);
+}
+
+TEST_CASE("Trying to delete a vertical seam with non-consecutive indices", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    // 4 -> 0 -> 3 is an invalid jump
+    std::stack<int> invalid_seam;
+    for (int i : {3, 4, 0, 3, 3}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(invalid_seam), std::invalid_argument);
+}
+
+TEST_CASE("Delete single vertical seam from 6x5.png", "[seam removal]") {
+    Mat image = imread("../images/6x5.png", IMREAD_COLOR);
+    Picture pic(image);
+    SeamCarver sc(pic);
+
+    std::vector<int> seam = {4, 4, 3, 2, 1};
+    Mat expected(image.rows, image.cols - 1, CV_8UC3);
+    for (int row = 0; row < image.rows; ++row) {
+        int i = seam[row];
+        const Vec3b* src = image.ptr<Vec3b>(row);
+        Vec3b* dst = expected.ptr<Vec3b>(row);
+
+        std::copy(src, src + i, dst);
+        std::copy(src + i + 1, src + image.cols, dst + i);
+    }
+
+    sc.removeVerticalSeam(sc.findVerticalSeam());
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Trying to delete a horizontal seam from a single row image", "[seam removal]") {
+    Picture pic("../images/8x1.png");
+    SeamCarver sc(pic);
+
+    // Disallow deletion of the last seam
+    REQUIRE(pic.height() == 1);
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(sc.findHorizontalSeam()), std::domain_error);
+}
+
+TEST_CASE("Deleting a horizontal seam from a single column image", "[seam removal]") {
+    Picture pic("../images/1x8.png");
+    SeamCarver sc(pic);
+
+    REQUIRE(sc.picture().height() == 8);
+    REQUIRE(sc.picture().width() == 1);
+    REQUIRE_NOTHROW(sc.removeHorizontalSeam(sc.findHorizontalSeam()));
+
+    REQUIRE(sc.picture().height() == 7);
+    REQUIRE(sc.picture().width() == 1);
+
+    REQUIRE_NOTHROW(sc.removeHorizontalSeam(sc.findHorizontalSeam()));
+    REQUIRE(sc.picture().height() == 6);
+}
+
+TEST_CASE("Trying to delete an incorrectly sized horizontal seam", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    REQUIRE(pic.width() == 6);
+
+    // All are within bounds, but seam needs to be 6 indices exactly.
+    std::stack<int> invalid_seam;
+    for (int i : {1, 2, 3}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(invalid_seam), std::invalid_argument);
+
+    // Making seam.size() > width
+    for (int i : {3, 2, 1, 0}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(invalid_seam), std::invalid_argument);
+}
+
+TEST_CASE("Trying to delete a horizontal seam with invalid indices", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    REQUIRE(pic.height() == 5);
+
+    // 6 > pic.height()
+    std::stack<int> out_of_bounds_seam;
+    for (int i : {4, 4, 5, 5, 6, 6}) out_of_bounds_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(out_of_bounds_seam), std::invalid_argument);
+
+    // Seam contains negative indices
+    std::stack<int> negative_seam;
+    for (int i : {0, -1, 0, 1, 2, 3}) negative_seam.push(i);
+    
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(negative_seam), std::invalid_argument);
+}
+
+TEST_CASE("Trying to delete a horizontal seam with non-consecutive indices", "[seam removal]") {
+    Picture pic("../images/6x5.png");
+    SeamCarver sc(pic);
+
+    REQUIRE(pic.width() == 6);
+
+    // 4 -> 0 -> 3 is an invalid jump
+    std::stack<int> invalid_seam;
+    for (int i : {3, 4, 0, 3, 3, 4}) invalid_seam.push(i);
+
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(invalid_seam), std::invalid_argument);
+}
+
+TEST_CASE("Delete single horizontal seam from 6x5.png", "[seam removal]") {
+    Mat image = imread("../images/6x5.png", IMREAD_COLOR);
+    Picture pic(image);
+    SeamCarver sc(pic);
+
+    // Constructing as a transposed matrix
+    image = image.t();
+    std::vector<int> seam = {2, 2, 1, 2, 1, 0};
+    Mat expected(image.rows, image.cols - 1, CV_8UC3);
+    for (int row = 0; row < image.rows; ++row) {
+        int i = seam[row];
+        const Vec3b* src = image.ptr<Vec3b>(row);
+        Vec3b* dst = expected.ptr<Vec3b>(row);
+
+        std::copy(src, src + i, dst);
+        std::copy(src + i + 1, src + image.cols, dst + i);
+    }
+    image = image.t();
+    expected = expected.t();
+
+    sc.removeHorizontalSeam(sc.findHorizontalSeam());
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
