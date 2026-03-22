@@ -55,7 +55,7 @@ void SeamCarver::transpose() {
     std::swap(width, height);
 }
 
-const cv::Mat SeamCarver::energy() const {
+cv::Mat SeamCarver::energy() const {
     if (transposed) {
         return energy_matrix.t();
     }
@@ -169,7 +169,7 @@ void SeamCarver::removeSeam(std::stack<int>& seam) {
 }
 
 // Always output the correctly oriented picture.
-const Picture SeamCarver::picture() const {
+Picture SeamCarver::picture() const {
     if (transposed) {
         Picture out(pic.toMat().t());
         return out;

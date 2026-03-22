@@ -1,5 +1,8 @@
 #include "picture.h"
+
+#include <utility>
 #include <stdexcept>
+
 #include <opencv2/core.hpp>
 
 Picture::Picture(const Picture& other) 

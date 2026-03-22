@@ -81,7 +81,6 @@ TEST_CASE("Mutating returned Picture doesn't affect SeamCarver internal state", 
     SeamCarver sc(original);
 
     Picture returned = sc.picture();
-    Mat energy_before = sc.energy().clone();
 
     // Overwrite every pixel in the returned picture
     for (int row = 0; row < returned.height(); ++row) {
