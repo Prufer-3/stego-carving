@@ -15,11 +15,11 @@ private:
     void aggregateEnergy();
     std::stack<int> findSeam() const;
     void transpose();
-    void removeSeam(std::stack<int> seam);
+    void removeSeam(std::stack<int>& seam);
     void checkSeam(const std::stack<int>& seam) const;
 
 public:
-    SeamCarver(const Picture pic);
+    SeamCarver(Picture pic);
     const cv::Mat energy() const;
     std::stack<int> findVerticalSeam();
     void removeVerticalSeam(std::stack<int> seam);

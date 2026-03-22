@@ -8,6 +8,18 @@ private:
     cv::Mat image;
 
 public:
+    // Rule of 5
+    // Copy constructor
+    Picture(const Picture& other);
+    // Move constructor
+    Picture(Picture&& other) noexcept;
+    // Copy assignment
+    Picture& operator=(const Picture& other);
+    // Move assignment
+    Picture& operator=(Picture&& other) noexcept;
+    // Destructor
+    ~Picture() = default;
+
     Picture(const std::string& filename);
     Picture(const cv::Mat& mat);
 

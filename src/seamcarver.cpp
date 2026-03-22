@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <utility>
+#include <stdexcept>
 #include <algorithm>
 
 namespace {
@@ -17,7 +18,7 @@ namespace {
     }
 }
 
-SeamCarver::SeamCarver(const Picture pic) : pic(pic) {
+SeamCarver::SeamCarver(Picture pic) : pic(pic) {
     width = pic.width();
     height = pic.height();
     aggregateEnergy();
@@ -48,8 +49,7 @@ float SeamCarver::calculateEnergy(int row, int col) {
 }
 
 void SeamCarver::transpose() {
-    Picture new_pic(pic.toMat().t());
-    pic = new_pic;
+    pic = Picture(pic.toMat().t());
     energy_matrix = energy_matrix.t();
     transposed = !transposed;
     std::swap(width, height);
@@ -151,7 +151,7 @@ void SeamCarver::checkSeam(const std::stack<int>& seam) const {
     }
 }
 
-void SeamCarver::removeSeam(std::stack<int> seam) {
+void SeamCarver::removeSeam(std::stack<int>& seam) {
     cv::Mat new_image(height, width - 1, CV_8UC3);
 
     for (int row = 0; row < height; ++row) {

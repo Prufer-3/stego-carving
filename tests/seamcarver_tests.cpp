@@ -76,6 +76,29 @@ TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]"
     REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
 
+TEST_CASE("Mutating returned Picture doesn't affect SeamCarver internal state", "[picture]") {
+    Picture original("../images/6x5.png");
+    SeamCarver sc(original);
+
+    Picture returned = sc.picture();
+    Mat energy_before = sc.energy().clone();
+
+    // Overwrite every pixel in the returned picture
+    for (int row = 0; row < returned.height(); ++row) {
+        for (int col = 0; col < returned.width(); ++col) {
+            returned.setPixel(row, col, Vec3b(0, 255, 0));
+        }
+    }
+
+    // Internal picture should be unaffected
+    Picture internal = sc.picture();
+    for (int row = 0; row < internal.height(); ++row) {
+        for (int col = 0; col < internal.width(); ++col) {
+            REQUIRE(internal.getPixel(row, col) == original.getPixel(row, col));
+        }
+    }
+}
+
 TEST_CASE("Transposed energy matrix is never exposed", "[energy]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(pic);
@@ -259,7 +282,7 @@ TEST_CASE("Trying to delete a vertical seam with invalid indices", "[seam remova
     REQUIRE_THROWS_AS(sc.removeVerticalSeam(negative_seam), std::invalid_argument);
 }
 
-TEST_CASE("Trying to delete a vertical seam with in non-consecutive seams", "[seam removal]") {
+TEST_CASE("Trying to delete a vertical seam with non-consecutive indices", "[seam removal]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(pic);
 
@@ -355,7 +378,7 @@ TEST_CASE("Trying to delete a horizontal seam with invalid indices", "[seam remo
     REQUIRE_THROWS_AS(sc.removeHorizontalSeam(negative_seam), std::invalid_argument);
 }
 
-TEST_CASE("Trying to delete a horizontal seam with in non-consecutive seams", "[seam removal]") {
+TEST_CASE("Trying to delete a horizontal seam with non-consecutive indices", "[seam removal]") {
     Picture pic("../images/6x5.png");
     SeamCarver sc(pic);
 

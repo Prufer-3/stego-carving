@@ -2,6 +2,26 @@
 #include <stdexcept>
 #include <opencv2/core.hpp>
 
+Picture::Picture(const Picture& other) 
+    : image(other.image.clone()) {}
+
+Picture::Picture(Picture&& other) noexcept 
+    : image(std::move(other.image)) {}
+
+Picture& Picture::operator=(const Picture& other) {
+    if (this != &other) {
+        image = other.image.clone();
+    }
+    return *this;
+}
+
+Picture& Picture::operator=(Picture&& other) noexcept {
+    if (this != &other) {
+        image = std::move(other.image);
+    }
+    return *this;
+}
+
 Picture::Picture(const std::string& filename) {
     image = cv::imread(filename, cv::IMREAD_COLOR);
     if (image.empty()) {
