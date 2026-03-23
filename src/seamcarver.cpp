@@ -55,6 +55,8 @@ void SeamCarver::transpose() {
     std::swap(width, height);
 }
 
+// TODO: Consider removing this. Energy matrix should not be exposed.
+// Will need to rewrite/delete some tests.
 cv::Mat SeamCarver::energy() const {
     if (transposed) {
         return energy_matrix.t();
