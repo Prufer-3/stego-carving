@@ -1,4 +1,4 @@
-#include <seamcarver.h>
+#include <seam_carver.h>
 
 #include <cmath>
 #include <utility>

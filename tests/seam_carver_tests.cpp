@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <picture.h>
-#include <seamcarver.h>
+#include <seam_carver.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -480,11 +480,11 @@ TEST_CASE("Multi vertical + horizontal seam removal matches reference", "[seam r
 
     // Seams need to be removed separately otherwise output will be different from reference
     for (auto i = 0; i < 3; ++i) {
-        sc.removeVerticalSeam(sc.findVerticalSeam());
+        sc.removeHorizontalSeam(sc.findHorizontalSeam());
     }
 
     for (auto i = 0; i < 3; ++i) {
-        sc.removeHorizontalSeam(sc.findHorizontalSeam());
+        sc.removeVerticalSeam(sc.findVerticalSeam());
     }
 
     // Generated from known correct Java implementation I previously wrote.

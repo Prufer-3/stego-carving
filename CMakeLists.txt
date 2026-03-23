@@ -20,13 +20,13 @@ find_package(OpenCV REQUIRED)
 message(STATUS "Found OpenCV version: ${OpenCV_VERSION}")
 
 # Build
-add_library(stegocarver_core src/picture.cpp src/seamcarver.cpp)
+add_library(stegocarver_core src/picture.cpp src/seam_carver.cpp)
 target_include_directories(stegocarver_core PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(stegocarver_core PUBLIC ${OpenCV_LIBS})
 target_compile_options(stegocarver_core PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
 
 # Tests
-add_executable(tests tests/picture_tests.cpp tests/seamcarver_tests.cpp)
+add_executable(tests tests/picture_tests.cpp tests/seam_carver_tests.cpp)
 target_link_libraries(tests PRIVATE stegocarver_core Catch2::Catch2WithMain)
 target_compile_options(tests PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
 set_property(TARGET tests APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " ${SANITIZER_FLAGS}")
