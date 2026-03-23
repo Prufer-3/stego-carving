@@ -25,6 +25,11 @@ target_include_directories(stegocarver_core PUBLIC include ${OpenCV_INCLUDE_DIRS
 target_link_libraries(stegocarver_core PUBLIC ${OpenCV_LIBS})
 target_compile_options(stegocarver_core PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
 
+# Demo driver
+add_executable(demo src/resize_demo.cpp)
+target_link_libraries(demo PRIVATE stegocarver_core)
+target_compile_options(demo PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
+
 # Tests
 add_executable(tests tests/picture_tests.cpp tests/seam_carver_tests.cpp)
 target_link_libraries(tests PRIVATE stegocarver_core Catch2::Catch2WithMain)
