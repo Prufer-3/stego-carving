@@ -17,4 +17,5 @@ public:
     ResizeDemo(const std::string& filename);
     // Immediately resize and display Picture
     void resize(int remove_cols, int remove_rows);
+    void show_seams(int num_cols, int num_rows);
 };
