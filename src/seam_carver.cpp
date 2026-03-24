@@ -112,7 +112,7 @@ std::stack<int> SeamCarver::findVerticalSeam() {
 
 void SeamCarver::removeVerticalSeam(std::stack<int> seam) {
     if (transposed) transpose();
-    checkSeam(seam);
+    // checkSeam(seam);
     removeSeam(seam);
 }
 
@@ -123,7 +123,7 @@ std::stack<int> SeamCarver::findHorizontalSeam() {
 
 void SeamCarver::removeHorizontalSeam(std::stack<int> seam) {
     if (!transposed) transpose();
-    checkSeam(seam);
+    // checkSeam(seam);
     removeSeam(seam);
 }
 

@@ -23,12 +23,14 @@ message(STATUS "Found OpenCV version: ${OpenCV_VERSION}")
 add_library(stegocarver_core src/picture.cpp src/seam_carver.cpp)
 target_include_directories(stegocarver_core PUBLIC include ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(stegocarver_core PUBLIC ${OpenCV_LIBS})
-target_compile_options(stegocarver_core PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
+target_compile_options(stegocarver_core PRIVATE -pg ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
+set_property(TARGET stegocarver_core APPEND_STRING PROPERTY LINK_FLAGS -pg)
 
 # Demo driver
 add_executable(demo src/resize_demo.cpp)
 target_link_libraries(demo PRIVATE stegocarver_core)
-target_compile_options(demo PRIVATE ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
+target_compile_options(demo PRIVATE -pg ${COMPILER_FLAGS} "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>")
+set_property(TARGET demo APPEND_STRING PROPERTY LINK_FLAGS -pg)
 
 # Tests
 add_executable(tests tests/picture_tests.cpp tests/seam_carver_tests.cpp)
