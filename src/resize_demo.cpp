@@ -12,7 +12,7 @@
 ResizeDemo::ResizeDemo(const std::string& filename)
     : original(filename), sc(original) {}
 
-void ResizeDemo::precompute(int cols, int rows) {
+void ResizeDemo::precompute(int cols) {
     for (int i = 0; i < cols; ++i) {
         std::stack<int> seam = sc.findVerticalSeam();
         std::stack<int> temp = seam;
@@ -24,19 +24,6 @@ void ResizeDemo::precompute(int cols, int rows) {
         }
         vertical_seams.push_back(indices);
         sc.removeVerticalSeam(seam);
-    }
-
-    for (int i = 0; i < rows; ++i) {
-        std::stack<int> seam = sc.findHorizontalSeam();
-        std::stack<int> temp = seam;
-        std::vector<int> indices;
-    
-        while (!temp.empty()) {
-            indices.push_back(temp.top());
-            temp.pop();
-        }
-        horizontal_seams.push_back(indices);
-        sc.removeHorizontalSeam(seam);
     }
 }
 
@@ -92,8 +79,8 @@ void ResizeDemo::show_seams(int cols, int rows) {
     pic.display();
 }
 
-void ResizeDemo::step_seams(int cols, int rows) {
-    precompute(cols, rows);
+void ResizeDemo::step_seams(int cols) {
+    precompute(cols);
     cv::namedWindow("Seams");
     latest_frame = original.toMat().clone();
     cv::imshow("Seams", latest_frame);
@@ -101,7 +88,7 @@ void ResizeDemo::step_seams(int cols, int rows) {
         "Steps",
         "Seams",
         nullptr,
-        cols + rows,
+        cols,
         on_trackbar,
         this
     );
@@ -152,7 +139,10 @@ int main(int argc, char const *argv[]) {
             demo.show_seams(cols, rows);
             break;
         case STEP_SEAMS:
-            demo.step_seams(cols, rows);
+            if (rows > 0) {
+                std::cout << "Horizontal seam carving not supported for seam stepping. Proceeding with columns only." << std::endl;
+            }
+            demo.step_seams(cols);
             break;
         default:
             std::cerr << "Invalid mode" << std::endl;

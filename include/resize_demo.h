@@ -15,7 +15,7 @@ private:
     cv::Mat latest_frame;
 
     // Runs removals and stores removed seams in a vector
-    void precompute(int cols, int rows);
+    void precompute(int cols);
     // Reconstructs picture at different steps based on recorded removed seams
     void render(int step);
     // opencv::Trackbar callback
@@ -27,6 +27,6 @@ public:
     void resize(int remove_cols, int remove_rows);
     // Show seams to be removed as red lines on the original Picture
     void show_seams(int num_cols, int num_rows);
-    // Displays an interable interface showing every seam during deletion
-    void step_seams(int num_cols, int num_rows);
+    // Displays an interface where you can step through each seam deletion
+    void step_seams(int num_cols);
 };
