@@ -98,30 +98,13 @@ void ResizeDemo::step_seams(int cols) {
 }
 
 int main(int argc, char const *argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " [image filename] [num cols to remove] [num rows to remove]" << std::endl;
-        return -1;
-    }
-
-    int cols = 0, rows = 0;
-
-    try {
-        cols = std::stoi(argv[2]);
-        if (cols < 0) {
-            throw std::invalid_argument("remove_cols must be positive");
-        }
-
-        rows = std::stoi(argv[3]);
-        if (rows < 0) {
-            throw std::invalid_argument("remove_rows must be positive");
-        }
-    } catch (...) {
-        std::cerr << "Invalid row and col arguments" << std::endl;
-        std::cerr << "Usage: " << argv[0] << " [image filename] [num cols to remove] [num rows to remove]" << std::endl;
-        return -1;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " [image filename]" << std::endl;
+        return 1;
     }
 
     std::string image_path = argv[1];
+    cv::Mat img = cv::imread(image_path);
     ResizeDemo demo = ResizeDemo(image_path);
 
     int mode;
@@ -129,8 +112,32 @@ int main(int argc, char const *argv[]) {
     [1] Resize and display immediately\n\
     [2] Show seams \n\
     [3] Step through seams" << std::endl;
-    std::cin >> mode;
+    if (!(std::cin >> mode) || mode < RESIZE || mode > STEP_SEAMS) {
+        std::cerr << "Invalid mode. Please pick from the options listed" << std::endl;
+        return 1;
+    }
 
+    int cols = 0, rows = 0;
+    std::cout << "How many columns do you want to delete? ";
+    if (!(std::cin >> cols)) {
+        std::cerr << "Invalid input: #columns must be an integer" << std::endl;
+        return 1;
+    }
+    if (cols < 0 || cols > img.cols) {
+        std::cerr << "#columns must be between 0 and " << img.cols - 1 << std::endl;
+        return 1;
+    }
+    std::cout << "How many rows do you want to delete? ";
+    if (!(std::cin >> rows)) {
+        std::cerr << "Invalid input: #rows must be an integer" << std::endl;
+        return 1;
+    }
+    if (rows < 0 || rows > img.rows) {
+        std::cerr << "#columns must be between 0 and " << img.rows - 1 << std::endl;
+        return 1;
+    }
+
+    std::cout << "Seam carving..." << std::endl;
     switch (mode) {
         case RESIZE:
             demo.resize(cols, rows);
@@ -146,6 +153,6 @@ int main(int argc, char const *argv[]) {
             break;
         default:
             std::cerr << "Invalid mode" << std::endl;
-            return -1;
+            return 1;
     }
 }
