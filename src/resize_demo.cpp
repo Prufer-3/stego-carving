@@ -41,23 +41,29 @@ void ResizeDemo::precompute(int cols, int rows) {
 }
 
 void ResizeDemo::render(int step) {
-    cv::Mat frame = original.toMat().clone();
-    for (int s = 0; s < step; ++s) {
-        cv::Mat next(frame.rows, frame.cols - 1, CV_8UC3);
-        for (int row = 0; row < frame.rows; ++row) {
+    for (int s = latest_step; s < step; ++s) {
+        cv::Mat next(latest_frame.rows, latest_frame.cols - 1, CV_8UC3);
+        for (int row = 0; row < latest_frame.rows; ++row) {
             int col = vertical_seams[s][row];
-            const cv::Vec3b* src = frame.ptr<cv::Vec3b>(row);
+            const cv::Vec3b* src = latest_frame.ptr<cv::Vec3b>(row);
             cv::Vec3b* dst = next.ptr<cv::Vec3b>(row);
             std::copy(src, src + col, dst);
-            std::copy(src + col + 1, src + frame.cols, dst + col);
+            std::copy(src + col + 1, src + latest_frame.cols, dst + col);
         }
-        frame = next;
+        latest_frame = next;
     }
-    cv::imshow("Seams", frame);
 }
 
 void ResizeDemo::on_trackbar(int step, void* demo) {
-    static_cast<ResizeDemo*>(demo)->render(step);
+    ResizeDemo* self = static_cast<ResizeDemo*>(demo);
+    if (step <= self->latest_step) {
+        cv::setTrackbarPos("Steps", "Seams", self->latest_step);
+        cv::imshow("Seams", self->latest_frame);
+        return;
+    }
+    self->render(step);
+    self->latest_step = step;
+    cv::imshow("Seams", self->latest_frame);
 }
 
 void ResizeDemo::resize(int cols, int rows) {
@@ -87,9 +93,10 @@ void ResizeDemo::show_seams(int cols, int rows) {
 }
 
 void ResizeDemo::step_seams(int cols, int rows) {
-    this->precompute(cols, rows);
+    precompute(cols, rows);
     cv::namedWindow("Seams");
-    render(0);
+    latest_frame = original.toMat().clone();
+    cv::imshow("Seams", latest_frame);
     cv::createTrackbar(
         "Steps",
         "Seams",
