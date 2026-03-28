@@ -68,10 +68,12 @@ void ResizeDemo::resize(int cols, int rows) {
 
 // Implementing single column for now
 void ResizeDemo::show_seams(int cols, int rows) {
-    std::cout << rows << std::endl;
+    if (rows > 0) {
+        std::cout << "Horizontal seam carving is not yet supported for displaying seams. Proceeding with columns only." << std::endl;
+    }
+
     precompute(cols);
     int height = original.height();
-    std::cout << height << std::endl;
     // This requires O(N) time to erase each pixel in the remaining 2D vector.
     std::vector<std::vector<int>> remaining(height, std::vector<int>(original.width()));
     for (int row = 0; row < height; ++row) {
@@ -92,7 +94,11 @@ void ResizeDemo::show_seams(int cols, int rows) {
     original.display();
 }
 
-void ResizeDemo::step_seams(int cols) {
+void ResizeDemo::step_seams(int cols, int rows) {
+    if (rows > 0) {
+        std::cout << "Horizontal seam carving is not yet supported for seam stepping. Proceeding with columns only." << std::endl;
+    }
+
     precompute(cols);
     cv::namedWindow("Seams");
     latest_frame = original.toMat().clone();
@@ -159,10 +165,7 @@ int main(int argc, char const *argv[]) {
             demo.show_seams(cols, rows);
             break;
         case STEP_SEAMS:
-            if (rows > 0) {
-                std::cout << "Horizontal seam carving not supported for seam stepping. Proceeding with columns only." << std::endl;
-            }
-            demo.step_seams(cols);
+            demo.step_seams(cols, rows);
             break;
         default:
             std::cerr << "Invalid mode" << std::endl;

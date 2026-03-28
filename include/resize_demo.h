@@ -27,5 +27,5 @@ public:
     // Show seams to be removed as red lines on the original Picture
     void show_seams(int num_cols, int num_rows);
     // Displays an interface where you can step through each seam deletion
-    void step_seams(int num_cols);
+    void step_seams(int num_cols, int num_rows);
 };
