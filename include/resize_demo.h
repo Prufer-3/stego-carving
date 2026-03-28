@@ -10,7 +10,6 @@ private:
     Picture original;
     SeamCarver sc;
     std::vector<std::vector<int>> vertical_seams;
-    std::vector<std::vector<int>> horizontal_seams;
     int latest_step = 0;
     cv::Mat latest_frame;
 

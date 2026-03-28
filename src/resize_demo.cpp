@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
 
 #define RESIZE 1
@@ -67,16 +68,28 @@ void ResizeDemo::resize(int cols, int rows) {
 
 // Implementing single column for now
 void ResizeDemo::show_seams(int cols, int rows) {
-    std::cout << cols << rows << std::endl;
-    std::stack seam = sc.findVerticalSeam();
-    Picture pic = sc.picture();
-
-    for (int row = 0; row < pic.height(); ++row) {
-        pic.setPixel(row, seam.top(), cv::Vec3b(0, 0, 255));
-        seam.pop();
+    std::cout << rows << std::endl;
+    precompute(cols);
+    int height = original.height();
+    std::cout << height << std::endl;
+    // This requires O(N) time to erase each pixel in the remaining 2D vector.
+    std::vector<std::vector<int>> remaining(height, std::vector<int>(original.width()));
+    for (int row = 0; row < height; ++row) {
+        std::iota(remaining[row].begin(), remaining[row].end(), 0);
     }
 
-    pic.display();
+    // New seams are generated after each removal, so indices must be
+    // mapped back to the original picture. Otherwise, they'll overlap a lot.
+    for (auto seam : vertical_seams) {
+        for (int row = 0; row < height; ++row) {
+            int col = seam[row];
+            seam[row] = remaining[row][col];
+            original.setPixel(row, seam[row], cv::Vec3b(0, 0, 255));
+            remaining[row].erase(remaining[row].begin() + col);
+        }
+    }
+
+    original.display();
 }
 
 void ResizeDemo::step_seams(int cols) {
@@ -109,7 +122,7 @@ int main(int argc, char const *argv[]) {
 
     int mode;
     std::cout << "Select mode:\n\
-    [1] Resize and display immediately\n\
+    [1] Resize and display\n\
     [2] Show seams \n\
     [3] Step through seams" << std::endl;
     if (!(std::cin >> mode) || mode < RESIZE || mode > STEP_SEAMS) {
