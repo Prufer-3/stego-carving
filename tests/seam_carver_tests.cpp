@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <picture.h>
-#include <seamcarver.h>
+#include <seam_carver.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -76,7 +76,7 @@ TEST_CASE("Mutating source Picture doesn't affect SeamCarver energy", "[energy]"
     REQUIRE(countNonZero(difference.reshape(1)) == 0);
 }
 
-TEST_CASE("Mutating returned Picture doesn't affect SeamCarver internal state", "[picture]") {
+TEST_CASE("Mutating returned Picture doesn't affect SeamCarver internal Picture", "[picture]") {
     Picture original("../images/6x5.png");
     SeamCarver sc(original);
 
@@ -411,6 +411,103 @@ TEST_CASE("Delete single horizontal seam from 6x5.png", "[seam removal]") {
     expected = expected.t();
 
     sc.removeHorizontalSeam(sc.findHorizontalSeam());
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Removing all vertical seams until the last column", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    while (sc.picture().width() != 1) {
+        REQUIRE_NOTHROW(sc.removeVerticalSeam(sc.findVerticalSeam()));
+    }
+
+    REQUIRE_THROWS_AS(sc.removeVerticalSeam(sc.findVerticalSeam()), std::domain_error);
+}
+
+TEST_CASE("Multi vertical seam removal matches reference", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    for (auto i = 0; i < 3; ++i) {
+        sc.removeVerticalSeam(sc.findVerticalSeam());
+    }
+
+    // Generated from known correct Java implementation I previously wrote.
+    Mat expected = imread("../images/10x10_v3.png", IMREAD_COLOR);
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Removing all horizontal seams until the last row", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    while (sc.picture().height() != 1) {
+        REQUIRE_NOTHROW(sc.removeHorizontalSeam(sc.findHorizontalSeam()));
+    }
+
+    REQUIRE_THROWS_AS(sc.removeHorizontalSeam(sc.findHorizontalSeam()), std::domain_error);
+}
+
+TEST_CASE("Multi horizontal seam removal matches reference", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    for (auto i = 0; i < 3; ++i) {
+        sc.removeHorizontalSeam(sc.findHorizontalSeam());
+    }
+
+    // Generated from known correct Java implementation I previously wrote.
+    Mat expected = imread("../images/10x10_h3.png", IMREAD_COLOR);
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Multi vertical + horizontal seam removal matches reference", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    // Seams need to be removed separately otherwise output will be different from reference
+    for (auto i = 0; i < 3; ++i) {
+        sc.removeHorizontalSeam(sc.findHorizontalSeam());
+    }
+
+    for (auto i = 0; i < 3; ++i) {
+        sc.removeVerticalSeam(sc.findVerticalSeam());
+    }
+
+    // Generated from known correct Java implementation I previously wrote.
+    Mat expected = imread("../images/10x10_v3h3.png", IMREAD_COLOR);
+    Mat result = sc.picture().toMat();
+
+    Mat difference;
+    bitwise_xor(result, expected, difference);
+    REQUIRE(countNonZero(difference.reshape(1)) == 0);
+}
+
+TEST_CASE("Intermixed vertical + horizontal seam removal matches reference", "[seam removal]") {
+    Picture pic("../images/10x10.png");
+    SeamCarver sc(pic);
+
+    for (auto i = 0; i < 3; ++i) {
+        sc.removeVerticalSeam(sc.findVerticalSeam());
+        sc.removeHorizontalSeam(sc.findHorizontalSeam());
+    }
+    sc.removeHorizontalSeam(sc.findHorizontalSeam());
+
+    // Generated from known correct Java implementation I previously wrote.
+    Mat expected = imread("../images/10x10_v3h4.png");
     Mat result = sc.picture().toMat();
 
     Mat difference;
