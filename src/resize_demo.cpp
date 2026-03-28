@@ -124,6 +124,10 @@ int main(int argc, char const *argv[]) {
 
     std::string image_path = argv[1];
     cv::Mat img = cv::imread(image_path);
+    if (img.empty()) {
+        std::cerr << "Error: Could not open image at " << image_path << std::endl;
+        return 1;
+    }
     ResizeDemo demo = ResizeDemo(image_path);
 
     int mode;

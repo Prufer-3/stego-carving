@@ -30,7 +30,6 @@ target_compile_options(stegocarver_core PRIVATE
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
 target_link_options(stegocarver_core PRIVATE
-  ${COMPILER_FLAGS}
   "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>"
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
@@ -44,7 +43,6 @@ target_compile_options(demo PRIVATE
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
 target_link_options(demo PRIVATE
-  ${COMPILER_FLAGS}
   "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>"
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
@@ -58,7 +56,6 @@ target_compile_options(tests PRIVATE
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
 target_link_options(tests PRIVATE
-  ${COMPILER_FLAGS}
   "$<$<CONFIG:Debug>:${SANITIZER_FLAGS}>"
   "$<$<CONFIG:Profiling>:${PROFILING_FLAGS}>"
 )
