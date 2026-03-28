@@ -146,7 +146,7 @@ int main(int argc, char const *argv[]) {
         std::cerr << "Invalid input: #columns must be an integer" << std::endl;
         return 1;
     }
-    if (cols < 0 || cols > img.cols) {
+    if (cols < 0 || cols >= img.cols) {
         std::cerr << "#columns must be between 0 and " << img.cols - 1 << std::endl;
         return 1;
     }
@@ -155,8 +155,8 @@ int main(int argc, char const *argv[]) {
         std::cerr << "Invalid input: #rows must be an integer" << std::endl;
         return 1;
     }
-    if (rows < 0 || rows > img.rows) {
-        std::cerr << "#columns must be between 0 and " << img.rows - 1 << std::endl;
+    if (rows < 0 || rows >= img.rows) {
+        std::cerr << "#rows must be between 0 and " << img.rows - 1 << std::endl;
         return 1;
     }
 
